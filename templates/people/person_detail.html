@@ -4,12 +4,14 @@
 
     <h1>{{ person }}</h1>
 
-    <section>
+    <section id="penalty-balance">
         <h2>Offener Strafstand</h2>
 
-        <strong>
+        <strong id="open-penalty-total">
             {{ open_penalty_total }} €
         </strong>
+
+        {% include "people/partials/penalty_yearly_summary.html" %}
     </section>
 
     {% include "people/partials/penalty_area.html" %}

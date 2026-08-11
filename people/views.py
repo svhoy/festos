@@ -8,6 +8,7 @@ from penalties.queries import (
     get_open_penalties,
     get_open_penalty_total,
     get_penalty_history,
+    get_person_yearly_penalty_totals,
 )
 from people.forms import PersonForm
 from people.models import MembershipStatus, Person
@@ -52,6 +53,9 @@ def person_detail(request, public_id):
         ),
         "can_pay_penalties": is_spiess(
             user=request.user,
+        ),
+        "yearly_penalty_totals": get_person_yearly_penalty_totals(
+            person=person,
         ),
     }
 

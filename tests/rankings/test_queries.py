@@ -34,11 +34,11 @@ def test_yearly_ranking_sums_penalties_for_selected_year(
     )
     penalty_2025.save(update_fields=["issued_at"])
 
-    ranking = get_yearly_ranking(
-        year=2026,
+    ranking = list(
+        get_yearly_ranking(year=2026),
     )
 
-    assert list(ranking) == [person]
+    assert ranking == [person]
     assert ranking[0].total_penalty_amount == Decimal("10.00")
 
 
@@ -60,11 +60,11 @@ def test_yearly_ranking_counts_paid_penalties(
         paid_by=spiess_user,
     )
 
-    ranking = get_yearly_ranking(
-        year=2026,
+    ranking = list(
+        get_yearly_ranking(year=2026),
     )
 
-    assert list(ranking) == [person]
+    assert ranking == [person]
     assert ranking[0].total_penalty_amount == Decimal("30.00")
 
 
@@ -89,11 +89,11 @@ def test_yearly_ranking_excludes_removed_penalties(
         removed_by=spiess_user,
     )
 
-    ranking = get_yearly_ranking(
-        year=2026,
+    ranking = list(
+        get_yearly_ranking(year=2026),
     )
 
-    assert list(ranking) == [person]
+    assert ranking == [person]
     assert ranking[0].total_penalty_amount == Decimal("20.00")
 
 
@@ -118,9 +118,7 @@ def test_yearly_ranking_orders_by_total_descending(
     )
 
     ranking = list(
-        get_yearly_ranking(
-            year=2026,
-        )
+        get_yearly_ranking(year=2026),
     )
 
     assert ranking == [
@@ -155,9 +153,11 @@ def test_total_ranking_includes_all_years(
         amount=Decimal("60.00"),
     )
 
-    ranking = get_total_ranking()
+    ranking = list(
+        get_total_ranking(),
+    )
 
-    assert list(ranking) == [person]
+    assert ranking == [person]
     assert ranking[0].total_penalty_amount == Decimal("100.00")
 
 
@@ -186,7 +186,9 @@ def test_total_ranking_sums_multiple_penalties_per_person(
         amount=Decimal("50.00"),
     )
 
-    ranking = list(get_total_ranking())
+    ranking = list(
+        get_total_ranking(),
+    )
 
     assert ranking == [
         person,
@@ -213,6 +215,8 @@ def test_total_ranking_excludes_person_with_only_removed_penalties(
         removed_by=spiess_user,
     )
 
-    ranking = get_total_ranking()
+    ranking = list(
+        get_total_ranking(),
+    )
 
-    assert list(ranking) == []
+    assert ranking == []

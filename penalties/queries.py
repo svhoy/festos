@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db.models import QuerySet, Sum
+from django.db.models.functions import ExtractYear
 
 from penalties.models import Penalty, PenaltyCatalogEntry
 from people.models import Person
@@ -51,4 +52,24 @@ def get_penalty_history(
             "events",
             "payments",
         )
+    )
+
+
+def get_person_yearly_penalty_totals(
+    *,
+    person: Person,
+) -> QuerySet:
+    return (
+        Penalty.objects.filter(
+            person=person,
+            removed_at__isnull=True,
+        )
+        .annotate(
+            year=ExtractYear("issued_at"),
+        )
+        .values("year")
+        .annotate(
+            total=Sum("amount"),
+        )
+        .order_by("-year")
     )

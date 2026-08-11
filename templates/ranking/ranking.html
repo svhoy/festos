@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Ranking</h1>
+
+    <section>
+        <h2>Gesamtranking</h2>
+
+        {% if ranking %}
+            <ol>
+                {% for person in ranking %}
+                    <li>
+                        {{ person }}
+                        – {{ person.total_penalty_amount }} €
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p>Noch keine Strafen.</p>
+        {% endif %}
+    </section>
+
+{% endblock %}

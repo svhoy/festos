@@ -35,4 +35,8 @@ urlpatterns = [
         "penalties/",
         include("penalties.urls"),
     ),
+    path(
+        "ranking/",
+        include("ranking.urls"),
+    ),
 ]

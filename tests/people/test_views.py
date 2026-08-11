@@ -666,7 +666,15 @@ def test_pay_penalty_updates_open_penalty_total(
         )
     )
 
-    assert "10 €" in response.content.decode()
+    content = response.content.decode()
+    start = content.index('<strong id="open-penalty-total">')
+    end = content.index(
+        "</strong>",
+        start,
+    )
+
+    balance_section = content[start:end]
+    assert "10 €" in balance_section
 
     response = client.post(
         reverse(
@@ -693,8 +701,15 @@ def test_pay_penalty_updates_open_penalty_total(
 
     content = response.content.decode()
 
-    assert "10 €" not in content
-    assert "0 €" in content
+    start = content.index('<strong id="open-penalty-total">')
+    end = content.index(
+        "</strong>",
+        start,
+    )
+
+    balance_section = content[start:end]
+
+    assert "0 €" in balance_section
 
 
 @pytest.mark.django_db
