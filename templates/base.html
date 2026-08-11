@@ -23,10 +23,14 @@
             Startseite
         </a>
 
+        <a href="{% url 'ranking:ranking' %}">
+            Ranking
+        </a>
+
         <a href="{% url 'people:list' %}">
             Personen
         </a>
-
+    
         {% if perms.penalties.manage_catalog %}
             <a href="{% url 'penalties:catalog-list' %}">
                 Strafenkatalog
