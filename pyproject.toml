@@ -1,0 +1,40 @@
+[project]
+name = "festos"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1, <6.2",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.2",
+    "ty>=0.0.69",
+]
+test = [
+    "django-stubs>=6.0.9",
+    "pytest>=9.1.1",
+    "pytest-django>=4.13.0",
+]
+
+[tool.pytest]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = [
+    "tests.py",
+    "test_*.py",
+    "**/tests.py",
+    "**/test_*.py", ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "DJ",
+]
