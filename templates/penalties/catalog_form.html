@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <main>
+        <h1>
+            {% if catalog_entry %}
+                Strafe bearbeiten
+            {% else %}
+                Neue Strafe
+            {% endif %}
+        </h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <label>
+                Name
+                <input
+                        type="text"
+                        name="name"
+                        value="{{ catalog_entry.name|default:'' }}"
+                        required
+                >
+            </label>
+
+            <label>
+                Beschreibung
+                <textarea name="description">{{ catalog_entry.description|default:'' }}</textarea>
+            </label>
+
+            <label>
+                Betrag
+                <input
+                        type="number"
+                        name="amount"
+                        value="{{ catalog_entry.amount|default:'' }}"
+                        min="0.01"
+                        step="0.01"
+                        required
+                >
+            </label>
+
+            <button type="submit">
+                Speichern
+            </button>
+        </form>
+    </main>
+{% endblock %}

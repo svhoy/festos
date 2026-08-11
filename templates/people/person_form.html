@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+Neue Person – FESTOS
+{% endblock %}
+
+{% block content %}
+
+<h1>Neue Person</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Person erstellen
+    </button>
+</form>
+
+<p>
+    <a href="{% url 'people:list' %}">
+        Abbrechen
+    </a>
+</p>
+
+{% endblock %}

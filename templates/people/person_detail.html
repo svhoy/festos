@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>{{ person }}</h1>
+
+    <section>
+        <h2>Offener Strafstand</h2>
+
+        <strong>
+            {{ open_penalty_total }} €
+        </strong>
+    </section>
+
+    {% include "people/partials/penalty_area.html" %}
+
+    {% include "people/partials/history_area.html" %}
+
+    {% if can_manage_penalties %}
+        <section>
+            <h2>Strafe aussprechen</h2>
+
+            <form
+                    method="post"
+                    hx-post="{% url 'penalties:issue' public_id=person.public_id %}"
+                    hx-target="#penalty-area"
+                    hx-swap="outerHTML"
+            >
+                {% csrf_token %}
+
+                <select name="catalog_entry">
+                    {% for entry in catalog_entries %}
+                        <option value="{{ entry.pk }}">
+                            {{ entry.name }} – {{ entry.amount }} €
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">
+                    Strafe aussprechen
+                </button>
+            </form>
+        </section>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,26 @@
+<section>
+    <h2>Historie</h2>
+
+    {% if penalty_history %}
+        <ul>
+            {% for penalty in penalty_history %}
+                <li>
+                    <strong>
+                        {{ penalty.catalog_entry.name }}
+                    </strong>
+                    – {{ penalty.amount }} €
+
+                    {% if penalty.status == "issued" %}
+                        <span>Ausgesprochen</span>
+                    {% elif penalty.status == "paid" %}
+                        <span>Bezahlt</span>
+                    {% elif penalty.status == "removed" %}
+                        <span>Entfernt</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Noch keine Strafen.</p>
+    {% endif %}
+</section>

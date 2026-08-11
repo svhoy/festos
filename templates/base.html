@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+            integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+            crossorigin="anonymous"></script>
+    <title>
+        {% block title %}FESTOS{% endblock %}
+    </title>
+</head>
+
+<body>
+
+{% if request.user.is_authenticated %}
+    <nav>
+        <a href="{% url 'home' %}">
+            Startseite
+        </a>
+
+        <a href="{% url 'people:list' %}">
+            Personen
+        </a>
+
+        {% if perms.penalties.manage_catalog %}
+            <a href="{% url 'penalties:catalog-list' %}">
+                Strafenkatalog
+            </a>
+        {% endif %}
+    </nav>
+
+    <div>
+        <span>
+            Angemeldet als {{ request.user.username }}
+        </span>
+
+        <form
+                method="post"
+                action="{% url 'accounts:logout' %}"
+        >
+            {% csrf_token %}
+
+            <button type="submit">
+                Abmelden
+            </button>
+        </form>
+    </div>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

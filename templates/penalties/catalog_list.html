@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <main>
+        <h1>Strafenkatalog</h1>
+    
+        <a href="{% url 'penalties:catalog-create' %}">
+            Neue Strafe
+        </a>
+
+        <ul>
+            {% for entry in catalog_entries %}
+                <li>
+                    <strong>{{ entry.name }}</strong>
+                    – {{ entry.amount }} €
+
+                    {% if entry.is_active %}
+                        <span>Aktiv</span>
+
+                        <form
+                                method="post"
+                                action="{% url 'penalties:catalog-deactivate' entry.pk %}"
+                        >
+                            {% csrf_token %}
+                            <button type="submit">
+                                Deaktivieren
+                            </button>
+                        </form>
+                    {% else %}
+                        <span>Deaktiviert</span>
+
+                        <form
+                                method="post"
+                                action="{% url 'penalties:catalog-activate' entry.pk %}"
+                        >
+                            {% csrf_token %}
+                            <button type="submit">
+                                Aktivieren
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <a
+                            href="{% url 'penalties:catalog-update' entry.pk %}"
+                    >
+                        Bearbeiten
+                    </a>
+                </li>
+            {% empty %}
+                <li>Noch keine Katalogeinträge.</li>
+            {% endfor %}
+        </ul>
+
+    </main>
+
+{% endblock %}

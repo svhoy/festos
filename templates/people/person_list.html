@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+Personen – FESTOS
+{% endblock %}
+
+{% block content %}
+
+<h1>Personen</h1>
+
+<p>
+    <a href="{% url 'people:create' %}">
+        Neue Person
+    </a>
+</p>
+
+<ul>
+    {% for person in people %}
+    <li>
+        <a href="{% url 'people:person-detail' person.public_id %}">
+            {{ person }}
+        </a>
+
+        – {{ person.get_membership_status_display }}
+    </li>
+    {% empty %}
+    <li>
+        Keine Personen vorhanden.
+    </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

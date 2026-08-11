@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <main>
+        <h1>FESTOS</h1>
+
+        <p>
+            Willkommen bei FESTOS.
+        </p>
+
+        <section>
+            <h2>Übersicht</h2>
+
+            <ul>
+                <li>
+                    <a href="{% url 'people:list' %}">
+                        Personen
+                    </a>
+                </li>
+
+                {% if perms.penalties.manage_catalog %}
+                    <li>
+                        <a href="{% url 'penalties:catalog-list' %}">
+                            Strafenkatalog
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </section>
+    </main>
+{% endblock %}
