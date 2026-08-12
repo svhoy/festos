@@ -49,7 +49,7 @@ def test_get_penalty_years_returns_distinct_years(
 def test_get_penalty_years_excludes_removed_penalties(
     person,
     penalty_factory,
-    user,
+    spiess_user,
 ):
     removed = penalty_factory(
         person=person,
@@ -68,7 +68,7 @@ def test_get_penalty_years_excludes_removed_penalties(
 
     remove_penalty(
         penalty=removed,
-        removed_by=user,
+        removed_by=spiess_user,
     )
 
     years = get_penalty_years()
@@ -262,37 +262,3 @@ def test_total_ranking_sums_multiple_penalties_per_person(
 
     assert ranking[0].total_penalty_amount == Decimal("70.00")
     assert ranking[1].total_penalty_amount == Decimal("50.00")
-
-
-@pytest.mark.django_db
-def test_get_penalty_years_excludes_removed_penalties(
-    person,
-    penalty_factory,
-):
-    removed = penalty_factory(
-        person=person,
-        amount=Decimal("10.00"),
-    )
-
-    removed.issued_at = datetime(
-        2024,
-        6,
-        1,
-        tzinfo=timezone.utc,
-    )
-    removed.removed_at = datetime(
-        2024,
-        7,
-        1,
-        tzinfo=timezone.utc,
-    )
-    removed.save(
-        update_fields=[
-            "issued_at",
-            "removed_at",
-        ],
-    )
-
-    years = get_penalty_years()
-
-    assert 2024 not in years

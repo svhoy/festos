@@ -372,3 +372,85 @@ def test_remove_penalty_requires_post(
     )
 
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_issue_penalty_htmx_updates_all_person_penalty_sections(
+    client,
+    spiess_user,
+    person,
+    catalog_entry,
+):
+    setup_role_permissions()
+
+    client.force_login(spiess_user)
+
+    response = client.post(
+        reverse(
+            "penalties:issue",
+            kwargs={
+                "public_id": person.public_id,
+            },
+        ),
+        {
+            "catalog_entry": catalog_entry.pk,
+        },
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+
+    content = response.content.decode()
+
+    assert 'id="penalty-balance"' in content
+    assert 'id="penalty-yearly-summary"' in content
+    assert 'id="penalty-area"' in content
+    assert 'id="history-area"' in content
+
+    assert 'hx-swap-oob="true"' in content
+    assert "Zu spät zum Antreten" in content
+    assert "Ausgesprochen" in content
+    assert "5 " in content
+
+
+@pytest.mark.django_db
+def test_pay_penalty_htmx_updates_all_person_penalty_sections(
+    client,
+    spiess_user,
+    person,
+    penalty_factory,
+):
+    setup_role_permissions()
+
+    penalty = penalty_factory(
+        person=person,
+        amount=Decimal("10.00"),
+    )
+
+    client.force_login(spiess_user)
+
+    response = client.post(
+        reverse(
+            "penalties:pay",
+            kwargs={
+                "public_id": person.public_id,
+            },
+        ),
+        {
+            "penalties": [penalty.pk],
+        },
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+
+    content = response.content.decode()
+
+    assert 'id="penalty-balance"' in content
+    assert 'id="penalty-yearly-summary"' in content
+    assert 'id="penalty-area"' in content
+    assert 'id="history-area"' in content
+
+    assert 'hx-swap-oob="true"' in content
+
+    assert "Bezahlt" in content

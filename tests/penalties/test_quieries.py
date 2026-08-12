@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 
+from penalties.queries import get_person_yearly_penalty_totals
 from penalties.services import remove_penalty
 from people.models import Person
 from ranking.queries import (
@@ -217,3 +218,85 @@ def test_total_ranking_excludes_person_with_only_removed_penalties(
 
     assert ranking == [person]
     assert ranking[0].total_penalty_amount == Decimal("0.00")
+
+
+@pytest.mark.django_db
+def test_get_person_yearly_penalty_totals(
+    person,
+    penalty_factory,
+):
+    penalty_factory(
+        person=person,
+        amount=Decimal("10.00"),
+    )
+
+    penalty_2025 = penalty_factory(
+        person=person,
+        amount=Decimal("20.00"),
+    )
+
+    penalty_2025.issued_at = datetime(
+        2025,
+        6,
+        1,
+        tzinfo=timezone.utc,
+    )
+    penalty_2025.save(
+        update_fields=["issued_at"],
+    )
+
+    totals = list(
+        get_person_yearly_penalty_totals(
+            person=person,
+        )
+    )
+
+    assert totals == [
+        {
+            "year": 2026,
+            "total": Decimal("10.00"),
+        },
+        {
+            "year": 2025,
+            "total": Decimal("20.00"),
+        },
+    ]
+
+
+@pytest.mark.django_db
+def test_get_person_yearly_penalty_totals_excludes_removed_penalties(
+    person,
+    penalty_factory,
+):
+    removed = penalty_factory(
+        person=person,
+        amount=Decimal("50.00"),
+    )
+
+    removed.removed_at = datetime(
+        2026,
+        7,
+        1,
+        tzinfo=timezone.utc,
+    )
+    removed.save(
+        update_fields=["removed_at"],
+    )
+
+    penalty_factory(
+        person=person,
+        amount=Decimal("20.00"),
+    )
+
+    totals = list(
+        get_person_yearly_penalty_totals(
+            person=person,
+        )
+    )
+
+    assert totals == [
+        {
+            "year": 2026,
+            "total": Decimal("20.00"),
+        },
+    ]

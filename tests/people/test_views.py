@@ -1,13 +1,15 @@
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.permissions import can_manage_penalty_for_person, is_spiess
 from accounts.role_permissions import setup_role_permissions
-from penalties.services import get_open_penalties, pay_penalties
+from penalties.services import get_open_penalties, issue_penalty, pay_penalties
 from people.models import MembershipStatus, Person
 
 User = get_user_model()
@@ -797,13 +799,14 @@ def test_person_detail_shows_issued_penalty_in_history(
     client,
     spiess_user,
     person,
-    penalty_factory,
+    catalog_entry,
 ):
     setup_role_permissions()
 
-    penalty_factory(
+    issue_penalty(
         person=person,
-        amount=Decimal("10.00"),
+        catalog_entry=catalog_entry,
+        issued_by=spiess_user,
     )
 
     client.force_login(spiess_user)
@@ -814,12 +817,12 @@ def test_person_detail_shows_issued_penalty_in_history(
             kwargs={
                 "public_id": person.public_id,
             },
-        )
+        ),
     )
 
     content = response.content.decode()
 
-    assert "Teststrafe" in content
+    assert "Zu spät zum Antreten" in content
     assert "Ausgesprochen" in content
 
 
@@ -959,3 +962,98 @@ def test_kommandant_sees_remove_button_for_spiess(
     )
 
     assert "Strafe entfernen" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_person_detail_shows_penalty_history_from_multiple_years(
+    client,
+    spiess_user,
+    person,
+    penalty_factory,
+):
+    penalty_2025 = penalty_factory(
+        person=person,
+        amount=Decimal("20.00"),
+    )
+
+    penalty_2025.issued_at = datetime(
+        2025,
+        6,
+        1,
+        tzinfo=timezone.UTC,
+    )
+    penalty_2025.save(
+        update_fields=["issued_at"],
+    )
+
+    penalty_2026 = penalty_factory(
+        person=person,
+        amount=Decimal("30.00"),
+    )
+
+    client.force_login(spiess_user)
+
+    response = client.get(
+        reverse(
+            "people:person-detail",
+            kwargs={
+                "public_id": person.public_id,
+            },
+        ),
+    )
+
+    content = response.content.decode()
+
+    assert "2026" in content
+    assert "2025" in content
+    assert "20 €" in content
+    assert "30 €" in content
+
+
+@pytest.mark.django_db
+def test_person_detail_groups_penalty_history_by_year(
+    client,
+    spiess_user,
+    person,
+    penalty_factory,
+):
+    penalty_2025 = penalty_factory(
+        person=person,
+        amount=Decimal("20.00"),
+    )
+
+    penalty_2025.issued_at = datetime(
+        2025,
+        6,
+        1,
+        tzinfo=timezone.UTC,
+    )
+    penalty_2025.save(
+        update_fields=["issued_at"],
+    )
+
+    penalty_2026 = penalty_factory(
+        person=person,
+        amount=Decimal("30.00"),
+    )
+
+    client.force_login(spiess_user)
+
+    response = client.get(
+        reverse(
+            "people:person-detail",
+            kwargs={
+                "public_id": person.public_id,
+            },
+        ),
+    )
+
+    history_by_year = response.context["history_by_year"]
+
+    assert list(history_by_year.keys()) == [
+        2026,
+        2025,
+    ]
+
+    assert history_by_year[2026] == [penalty_2026]
+    assert history_by_year[2025] == [penalty_2025]

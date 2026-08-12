@@ -3,21 +3,18 @@
 {% block content %}
 
     <h1>{{ person }}</h1>
-
-    <section id="penalty-balance">
-        <h2>Offener Strafstand</h2>
-
-        <strong id="open-penalty-total">
-            {{ open_penalty_total }} €
-        </strong>
-
+    <div id="penalty-balance">
+        {% include "people/partials/penalty_balance.html" %}
+    </div>
+    <div id="penalty-yearly-summary">
         {% include "people/partials/penalty_yearly_summary.html" %}
-    </section>
-
-    {% include "people/partials/penalty_area.html" %}
-
-    {% include "people/partials/history_area.html" %}
-
+    </div>
+    <div id="penalty-area">
+        {% include "people/partials/penalty_area.html" %}
+    </div>
+    <div id="history-area">
+        {% include "people/partials/history_area.html" %}
+    </div>
     {% if can_manage_penalties %}
         <section>
             <h2>Strafe aussprechen</h2>

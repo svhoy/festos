@@ -1,65 +1,68 @@
-<div id="penalty-area">
-    <section>
-        <h2>Offene Strafen</h2>
+<h2>Offene Strafen</h2>
 
-        {% if open_penalties %}
+{% if open_penalties %}
 
-            {% for penalty in open_penalties %}
-                <div>
-                    {{ penalty.catalog_entry.name }}
-                    – {{ penalty.amount }} €
-
-                    {% if can_pay_penalties %}
-                        <input
-                                type="checkbox"
-                                name="penalties"
-                                value="{{ penalty.pk }}"
-                                form="pay-penalties-form"
-                        >
-                    {% endif %}
-
-                    {% if can_manage_penalties %}
-                        <form
-                                method="post"
-                                action="{% url 'penalties:remove' penalty.pk %}"
-                        >
-                            {% csrf_token %}
-
-                            <button type="submit">
-                                Strafe entfernen
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
-            {% endfor %}
+    {% for penalty in open_penalties %}
+        <div>
+            {{ penalty.catalog_entry.name }}
+            – {{ penalty.amount }} €
 
             {% if can_pay_penalties %}
+                <input
+                        type="checkbox"
+                        name="penalties"
+                        value="{{ penalty.pk }}"
+                        form="pay-penalties-form"
+                >
+            {% endif %}
+
+            {% if can_manage_penalties %}
                 <form
-                        id="pay-penalties-form"
                         method="post"
-                        action="{% url 'penalties:pay' person.public_id %}"
+                        action="{% url 'penalties:remove' penalty.pk %}"
                 >
                     {% csrf_token %}
 
                     <button type="submit">
-                        Ausgewählte Strafen bezahlen
-                    </button>
-                </form>
-
-                <form
-                        method="post"
-                        action="{% url 'penalties:pay-all' person.public_id %}"
-                >
-                    {% csrf_token %}
-
-                    <button type="submit">
-                        Alle Strafen bezahlen
+                        Strafe entfernen
                     </button>
                 </form>
             {% endif %}
+        </div>
+    {% endfor %}
 
-        {% else %}
-            <p>Keine offenen Strafen.</p>
-        {% endif %}
-    </section>
-</div>
+    {% if can_pay_penalties %}
+        <form
+                id="pay-penalties-form"
+                method="post"
+                action="{% url 'penalties:pay' person.public_id %}"
+                hx-post="{% url 'penalties:pay' person.public_id %}"
+                hx-target="#penalty-area"
+                hx-swap="outerHTML"
+        >
+            {% csrf_token %}
+
+            <button type="submit">
+                Ausgewählte Strafen bezahlen
+            </button>
+        </form>
+
+        <form
+                method="post"
+                action="{% url 'penalties:pay-all' person.public_id %}"
+                hx-post="{% url 'penalties:pay-all' person.public_id %}"
+                hx-target="#penalty-area"
+                hx-swap="outerHTML"
+        >
+            {% csrf_token %}
+
+            <button type="submit">
+                Alle Strafen bezahlen
+            </button>
+        </form>
+    {% endif %}
+
+{% else %}
+    <p>Keine offenen Strafen.</p>
+{% endif %}
+

@@ -1,16 +1,14 @@
-<section id="penalty-yearly-summary">
-    <h2>Strafstand nach Jahren</h2>
+<h2>Strafen nach Jahren</h2>
 
-    {% if yearly_penalty_totals %}
-        <ul>
-            {% for yearly_total in yearly_penalty_totals %}
-                <li>
-                    {{ yearly_total.year }}:
-                    {{ yearly_total.total }} €
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Noch keine Strafen.</p>
-    {% endif %}
-</section>
+{% if person_yearly_penalty_totals %}
+    <ul>
+        {% for yearly_total in person_yearly_penalty_totals %}
+            <li>
+                {{ yearly_total.year }}:
+                {{ yearly_total.total }} €
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Noch keine Strafen.</p>
+{% endif %}

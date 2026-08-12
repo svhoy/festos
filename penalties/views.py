@@ -13,7 +13,13 @@ from django.views.decorators.http import require_POST
 
 from accounts.permissions import can_manage_penalty_for_person, is_spiess
 from penalties.models import Penalty, PenaltyCatalogEntry
-from penalties.queries import get_open_penalties, get_open_penalty_total
+from penalties.queries import (
+    get_active_catalog_entries,
+    get_open_penalties,
+    get_open_penalty_total,
+    get_penalty_history,
+    get_person_yearly_penalty_totals,
+)
 from penalties.services import (
     activate_catalog_entry,
     create_catalog_entry,
@@ -24,6 +30,48 @@ from penalties.services import (
     update_catalog_entry,
 )
 from people.models import Person
+
+
+def _person_penalty_context(request, person):
+    penalty_history = get_penalty_history(
+        person=person,
+    )
+
+    history_by_year = {}
+
+    for penalty in penalty_history:
+        history_by_year.setdefault(
+            penalty.issued_at.year,
+            [],
+        ).append(penalty)
+
+    return {
+        "person": person,
+        "open_penalties": get_open_penalties(
+            person=person,
+        ),
+        "open_penalty_total": get_open_penalty_total(
+            person=person,
+        ),
+        "catalog_entries": get_active_catalog_entries(),
+        "can_manage_penalties": can_manage_penalty_for_person(
+            user=request.user,
+            person=person,
+        ),
+        "can_pay_penalties": is_spiess(
+            user=request.user,
+        ),
+        "person_yearly_penalty_totals": get_person_yearly_penalty_totals(
+            person=person,
+        ),
+        "penalty_history": penalty_history,
+        "history_by_year": dict(
+            sorted(
+                history_by_year.items(),
+                reverse=True,
+            ),
+        ),
+    }
 
 
 @login_required
@@ -176,19 +224,54 @@ def issue_penalty_view(
         catalog_entry=catalog_entry,
         issued_by=request.user,
     )
+    penalty_history = get_penalty_history(
+        person=person,
+    )
 
+    history_by_year = {}
+
+    for penalty in penalty_history:
+        history_by_year.setdefault(
+            penalty.issued_at.year,
+            [],
+        ).append(penalty)
+
+    context = {
+        "person": person,
+        "open_penalties": get_open_penalties(
+            person=person,
+        ),
+        "open_penalty_total": get_open_penalty_total(
+            person=person,
+        ),
+        "person_yearly_penalty_totals": get_person_yearly_penalty_totals(
+            person=person,
+        ),
+        "penalty_history": penalty_history,
+        "history_by_year": dict(
+            sorted(
+                history_by_year.items(),
+                reverse=True,
+            ),
+        ),
+        "can_manage_penalties": can_manage_penalty_for_person(
+            user=request.user,
+            person=person,
+        ),
+        "can_pay_penalties": is_spiess(
+            user=request.user,
+        ),
+    }
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request,
+            "people/partials/penalty_oob.html",
+            context,
+        )
     return render(
         request,
         "people/partials/penalty_area.html",
-        {
-            "person": person,
-            "open_penalties": get_open_penalties(
-                person=person,
-            ),
-            "open_penalty_total": get_open_penalty_total(
-                person=person,
-            ),
-        },
+        context,
     )
 
 
@@ -250,6 +333,16 @@ def pay_penalties_view(request, public_id):
         paid_by=request.user,
     )
 
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request,
+            "people/partials/penalty_oob.html",
+            _person_penalty_context(
+                request=request,
+                person=person,
+            ),
+        )
+
     return redirect(
         "people:person-detail",
         public_id=person.public_id,
@@ -286,7 +379,15 @@ def pay_all_penalties_view(request, public_id):
         penalties=penalties,
         paid_by=request.user,
     )
-
+    if request.headers.get("HX-Request") == "true":
+        return render(
+            request,
+            "people/partials/penalty_oob.html",
+            _person_penalty_context(
+                request=request,
+                person=person,
+            ),
+        )
     return redirect(
         "people:person-detail",
         public_id=person.public_id,

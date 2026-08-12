@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
@@ -28,22 +30,29 @@ def person_list(request):
     )
 
 
-@login_required
-def person_detail(request, public_id):
-    person = get_object_or_404(
-        Person,
-        public_id=public_id,
+def _build_person_detail_context(
+    *,
+    request,
+    person,
+):
+    penalty_history = get_penalty_history(
+        person=person,
     )
 
-    context = {
+    history_by_year = {}
+
+    for penalty in penalty_history:
+        history_by_year.setdefault(
+            penalty.issued_at.year,
+            [],
+        ).append(penalty)
+
+    return {
         "person": person,
         "open_penalties": get_open_penalties(
             person=person,
         ),
         "open_penalty_total": get_open_penalty_total(
-            person=person,
-        ),
-        "penalty_history": get_penalty_history(
             person=person,
         ),
         "catalog_entries": get_active_catalog_entries(),
@@ -54,10 +63,30 @@ def person_detail(request, public_id):
         "can_pay_penalties": is_spiess(
             user=request.user,
         ),
-        "yearly_penalty_totals": get_person_yearly_penalty_totals(
+        "person_yearly_penalty_totals": get_person_yearly_penalty_totals(
             person=person,
         ),
+        "penalty_history": penalty_history,
+        "history_by_year": dict(
+            sorted(
+                history_by_year.items(),
+                reverse=True,
+            ),
+        ),
     }
+
+
+@login_required
+def person_detail(request, public_id):
+    person = get_object_or_404(
+        Person,
+        public_id=public_id,
+    )
+
+    context = _build_person_detail_context(
+        request=request,
+        person=person,
+    )
 
     return render(
         request,
