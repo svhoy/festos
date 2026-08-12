@@ -3,13 +3,32 @@
 {% block content %}
 
     <h1>Ranking</h1>
-
     <section>
-        <h2>Gesamtranking</h2>
+        <h2>Jahresranking</h2>
 
-        {% if ranking %}
+        <form method="get">
+            <label>
+                Jahr
+                <select name="year">
+                    {% for year in available_years %}
+                        <option
+                                value="{{ year }}"
+                                {% if year == selected_year %}selected{% endif %}
+                        >
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <button type="submit">
+                Anzeigen
+            </button>
+        </form>
+
+        {% if yearly_ranking %}
             <ol>
-                {% for person in ranking %}
+                {% for person in yearly_ranking %}
                     <li>
                         {{ person }}
                         – {{ person.total_penalty_amount }} €
@@ -17,8 +36,27 @@
                 {% endfor %}
             </ol>
         {% else %}
-            <p>Noch keine Strafen.</p>
+            <p>Keine aktiven Personen.</p>
         {% endif %}
     </section>
+
+    <section>
+        <h2>Gesamtranking</h2>
+
+        {% if total_ranking %}
+            <ol>
+                {% for person in total_ranking %}
+                    <li>
+                        {{ person }}
+                        – {{ person.total_penalty_amount }} €
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p>Noch keine Personen.</p>
+        {% endif %}
+    </section>
+
+
 
 {% endblock %}

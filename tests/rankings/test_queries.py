@@ -3,12 +3,77 @@ from decimal import Decimal
 
 import pytest
 
+from accounts.role_permissions import setup_role_permissions
 from penalties.services import remove_penalty
 from people.models import Person
 from ranking.queries import (
+    get_penalty_years,
     get_total_ranking,
     get_yearly_ranking,
 )
+
+
+@pytest.mark.django_db
+def test_get_penalty_years_returns_distinct_years(
+    person,
+    penalty_factory,
+):
+    penalty_2025 = penalty_factory(
+        person=person,
+        amount=Decimal("10.00"),
+    )
+    penalty_2025.issued_at = datetime(
+        2025,
+        6,
+        1,
+        tzinfo=timezone.utc,
+    )
+    penalty_2025.save(
+        update_fields=["issued_at"],
+    )
+
+    penalty_2026 = penalty_factory(
+        person=person,
+        amount=Decimal("20.00"),
+    )
+
+    years = get_penalty_years()
+
+    assert list(years) == [
+        2026,
+        2025,
+    ]
+
+
+@pytest.mark.django_db
+def test_get_penalty_years_excludes_removed_penalties(
+    person,
+    penalty_factory,
+    user,
+):
+    removed = penalty_factory(
+        person=person,
+        amount=Decimal("10.00"),
+    )
+
+    removed.issued_at = datetime(
+        2024,
+        6,
+        1,
+        tzinfo=timezone.utc,
+    )
+    removed.save(
+        update_fields=["issued_at"],
+    )
+
+    remove_penalty(
+        penalty=removed,
+        removed_by=user,
+    )
+
+    years = get_penalty_years()
+
+    assert 2024 not in years
 
 
 @pytest.mark.django_db
@@ -200,23 +265,34 @@ def test_total_ranking_sums_multiple_penalties_per_person(
 
 
 @pytest.mark.django_db
-def test_total_ranking_excludes_person_with_only_removed_penalties(
+def test_get_penalty_years_excludes_removed_penalties(
     person,
     penalty_factory,
-    spiess_user,
 ):
-    penalty = penalty_factory(
+    removed = penalty_factory(
         person=person,
-        amount=Decimal("50.00"),
+        amount=Decimal("10.00"),
     )
 
-    remove_penalty(
-        penalty=penalty,
-        removed_by=spiess_user,
+    removed.issued_at = datetime(
+        2024,
+        6,
+        1,
+        tzinfo=timezone.utc,
+    )
+    removed.removed_at = datetime(
+        2024,
+        7,
+        1,
+        tzinfo=timezone.utc,
+    )
+    removed.save(
+        update_fields=[
+            "issued_at",
+            "removed_at",
+        ],
     )
 
-    ranking = list(
-        get_total_ranking(),
-    )
+    years = get_penalty_years()
 
-    assert ranking == []
+    assert 2024 not in years

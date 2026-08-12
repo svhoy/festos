@@ -213,6 +213,7 @@ def test_total_ranking_excludes_person_with_only_removed_penalties(
         removed_by=spiess_user,
     )
 
-    ranking = get_total_ranking()
+    ranking = list(get_total_ranking())
 
-    assert list(ranking) == []
+    assert ranking == [person]
+    assert ranking[0].total_penalty_amount == Decimal("0.00")
