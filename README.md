@@ -35,5 +35,6 @@ python manage.py runserver
 ```
 
 Run the test suite:
-
+```bash
 pytest
+```
